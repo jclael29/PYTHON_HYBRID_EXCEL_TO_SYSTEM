@@ -1,0 +1,16 @@
+"""Kulay at font ng buong app."""
+
+MAROON = "#5b0a0a"
+GREEN = "#0b7d0b"
+GREEN_DARK = "#0a690a"
+GRAY = "#d9d9d9"
+MUTED = "#8a6f77"
+BG = "#ffffff"
+SIDEBAR_BORDER = "#f0d6dc"
+NAV_ACTIVE_BG = "#f7e9ec"
+BORDER = "#777777"
+DIVIDER = "#999999"
+ORANGE = "#d98a00"
+RED = "#b00020"
+
+FONT = "Segoe UI"
