@@ -55,7 +55,7 @@ class FormPage(BasePage):
                                    font=(T.FONT, 9), activebackground=T.GREEN_DARK,
                                    activeforeground="white", cursor="hand2", command=self.c.start)
         self.btn_start.pack(side="left", fill="x", expand=True, ipady=10)
-        self.btn_save = tk.Button(bar, text="💾  Save", bg=T.BG, relief="solid", bd=1, font=(T.FONT, 9),
+        self.btn_save = tk.Button(bar, text="💾  Save As", bg=T.BG, relief="solid", bd=1, font=(T.FONT, 9),
                                   cursor="hand2", state="disabled", command=self.c.save)
         self.btn_save.pack(side="left", padx=8, ipady=8, ipadx=30)
         tk.Button(bar, text="📂  Open", bg=T.BG, relief="solid", bd=1, font=(T.FONT, 9),
@@ -103,7 +103,7 @@ class FormPage(BasePage):
         row.pack(fill="x", pady=4)
         tk.Entry(row, textvariable=self.c.template_path, relief="solid", bd=1).pack(side="left", fill="x", expand=True, ipady=4)
         tk.Button(row, text="Browse", bg=T.GRAY, relief="flat", command=self.c.pick_template).pack(side="left", padx=6, ipadx=10)
-        tk.Label(box, text=f'Pagkatapos ng processing, i-click ang Save at pumili ng location. Gagawa ito ng folder na "{self.c.output_folder_name}" (pwede mo itong i-rename pagkatapos).',
+        tk.Label(box, text=f'Pagkatapos ng processing, i-click ang Save As, pumili ng destination, at ilagay ang pangalan ng folder (default: "{self.c.output_folder_name}").',
                  bg=T.BG, fg=T.MUTED, font=(T.FONT, 8)).pack(anchor="w", padx=16, pady=(0, 10))
 
     # ---------- tabs ----------
@@ -141,12 +141,12 @@ class FormPage(BasePage):
             self.stat_cards[k].set(v)
 
     def show_processed(self, count):
-        """Tapos na ang processing pero HINDI pa naka-save. User ang magki-click ng Save."""
+        """Tapos na ang processing pero HINDI pa naka-save. User ang magki-click ng Save As."""
         self.badge.config(text="Ready to Save", bg="#3b5bdb")
         if count > 0:
             self.btn_save.config(state="normal")
             messagebox.showinfo("Tapos na ang processing",
-                                f"{count} {self.c.item_label} ang handa na.\n\nI-click ang 💾 Save para i-save ang mga file.")
+                                f"{count} {self.c.item_label} ang handa na.\n\nI-click ang 💾 Save As para i-save ang mga file.")
         else:
             self.status_var.set(f"Walang nagawang {self.c.item_label}. Tingnan ang Failed Sheet / Missing Data.")
 

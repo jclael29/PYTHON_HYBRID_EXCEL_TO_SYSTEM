@@ -103,10 +103,10 @@ class Form9Engine:
             if s11["lrn"] and s11["lrn"] not in g12_lrns:
                 self.log.append(f"SKIPPED  {s11['name']}: nasa Grade 11 pero wala sa Grade 12 (walang Form 9)")
 
-        self._say(100, "Tapos na. Pindutin ang Save para i-save ang mga file.")
+        self._say(100, "Tapos na. Pindutin ang Save As para i-save ang mga file.")
 
     def save_to(self, folder):
-        """Isulat sa disk ang lahat ng na-process (tinatawag lang kapag pinindot ang Save)."""
+        """Isulat sa disk ang lahat ng na-process (tinatawag lang kapag pinindot ang Save As)."""
         os.makedirs(folder, exist_ok=True)
         for name, data in self.results:
             with open(os.path.join(folder, name), "wb") as f:

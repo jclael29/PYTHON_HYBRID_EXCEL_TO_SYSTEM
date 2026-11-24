@@ -4,7 +4,7 @@ Hawak nito ang mga napiling file, ang thread na nagpoproseso, at nag-uupdate ng 
 
 Dalawang hakbang:
   1. Start Processing -> ginagawa ang mga file sa memory (wala pang naka-save)
-  2. Save             -> pipili ang user ng location, gagawa ng folder at dun isusulat
+  2. Save As          -> lalabas ang file explorer; pipili ang user ng destination at pangalan ng folder
 """
 import os
 import queue
@@ -24,7 +24,7 @@ class BaseController:
     page_title = "Form Automation"    # malaking title sa taas ng page
     template_name = ""                # default na pangalan ng template file
     template_keywords = ()            # panghanap kung bahagyang iba ang pangalan
-    output_folder_name = "OUTPUT"     # pangalan ng folder na gagawin sa Save
+    output_folder_name = "OUTPUT"     # default na pangalan ng folder sa Save As
     template_label = "Template"       # pangalan ng template sa mga mensahe
     item_label = "file"               # tawag sa nagagawa (SF10 / Form 9) sa mga mensahe
 
@@ -89,11 +89,10 @@ class BaseController:
 
         threading.Thread(target=work, daemon=True).start()
 
-    # ---------- save (hakbang 2) - user ang pipindot ----------
-    def _unique_folder(self, parent):
-        """Folder sa loob ng napiling location; hindi nag-o-overwrite."""
-        base = os.path.join(parent, self.output_folder_name)
-        path, n = base, 2
+    # ---------- save as (hakbang 2) - user ang pipindot ----------
+    def _unique_path(self, path):
+        """Kung may kapareho nang pangalan sa napiling location, dagdagan ng (2), (3)... Hindi nag-o-overwrite."""
+        base, n = path, 2
         while os.path.exists(path):
             path = f"{base} ({n})"
             n += 1
@@ -103,19 +102,26 @@ class BaseController:
         if self.running:
             return
         if self.engine is None or not self.engine.results:
-            messagebox.showinfo("Save", "Wala pang mase-save. I-click muna ang Start Processing.")
+            messagebox.showinfo("Save As", "Wala pang mase-save. I-click muna ang Start Processing.")
             return
-        opts = {"title": "Piliin kung saan ise-save ang folder"}
+        # "Save As" na parang nagda-download sa browser: pipili ng destination at pwedeng palitan ang pangalan ng folder
+        opts = {
+            "title": "Save As",
+            "initialfile": self.output_folder_name,   # default na pangalan (pwedeng baguhin)
+            "defaultextension": "",
+            "filetypes": [("Folder", "*")],
+            "confirmoverwrite": False,
+        }
         if self.g11_path.get():
             opts["initialdir"] = os.path.dirname(self.g11_path.get())
-        parent = filedialog.askdirectory(**opts)
-        if not parent:          # kinansela ng user
+        chosen = filedialog.asksaveasfilename(**opts)
+        if not chosen:          # kinansela ng user
             return
-        folder = self._unique_folder(parent)
+        folder = self._unique_path(os.path.normpath(chosen))
         try:
             count = self.engine.save_to(folder)
         except OSError as e:
-            messagebox.showerror("Save", f"Hindi na-save ang mga file:\n\n{e}")
+            messagebox.showerror("Save As", f"Hindi na-save ang mga file:\n\n{e}")
             return
         self.last_out = folder
         self.view.show_saved(folder, count)
