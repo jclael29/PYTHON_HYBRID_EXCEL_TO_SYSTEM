@@ -103,7 +103,7 @@ class FormPage(BasePage):
         row.pack(fill="x", pady=4)
         tk.Entry(row, textvariable=self.c.template_path, relief="solid", bd=1).pack(side="left", fill="x", expand=True, ipady=4)
         tk.Button(row, text="Browse", bg=T.GRAY, relief="flat", command=self.c.pick_template).pack(side="left", padx=6, ipadx=10)
-        tk.Label(box, text=f'Pagkatapos ng processing, i-click ang Save As, pumili ng destination, at ilagay ang pangalan ng folder (default: "{self.c.output_folder_name}").',
+        tk.Label(box, text=f'Pagkatapos ng processing, kusang lalabas ang Save As: pumili ng destination at ilagay ang pangalan ng folder (default: "{self.c.output_folder_name}").',
                  bg=T.BG, fg=T.MUTED, font=(T.FONT, 8)).pack(anchor="w", padx=16, pady=(0, 10))
 
     # ---------- tabs ----------
@@ -141,14 +141,18 @@ class FormPage(BasePage):
             self.stat_cards[k].set(v)
 
     def show_processed(self, count):
-        """Tapos na ang processing pero HINDI pa naka-save. User ang magki-click ng Save As."""
+        """Tapos na ang processing. Kusang lalabas ang Save As (galing sa controller)."""
         self.badge.config(text="Ready to Save", bg="#3b5bdb")
         if count > 0:
             self.btn_save.config(state="normal")
-            messagebox.showinfo("Tapos na ang processing",
-                                f"{count} {self.c.item_label} ang handa na.\n\nI-click ang 💾 Save As para i-save ang mga file.")
+            self.status_var.set(f"Tapos na ang {count} {self.c.item_label}. Piliin kung saan ise-save ang folder...")
         else:
             self.status_var.set(f"Walang nagawang {self.c.item_label}. Tingnan ang Failed Sheet / Missing Data.")
+
+    def show_cancelled(self):
+        """Kinansela ang Save As. Hindi pa naka-save; pwede pang i-click ang Save As."""
+        self.badge.config(text="Ready to Save", bg="#3b5bdb")
+        self.status_var.set("Hindi pa naka-save. I-click ang 💾 Save As kapag handa ka na.")
 
     def show_saved(self, folder, count):
         self.badge.config(text="Saved", bg=T.GREEN)

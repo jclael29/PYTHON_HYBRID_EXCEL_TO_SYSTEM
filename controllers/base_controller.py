@@ -4,7 +4,8 @@ Hawak nito ang mga napiling file, ang thread na nagpoproseso, at nag-uupdate ng 
 
 Dalawang hakbang:
   1. Start Processing -> ginagawa ang mga file sa memory (wala pang naka-save)
-  2. Save As          -> lalabas ang file explorer; pipili ang user ng destination at pangalan ng folder
+  2. Save As          -> pagkatapos ng processing, kusang lalabas ang file explorer; pipili ang user
+                         ng destination at pangalan ng folder (pwede ring pindutin ulit ang Save As)
 """
 import os
 import queue
@@ -89,7 +90,7 @@ class BaseController:
 
         threading.Thread(target=work, daemon=True).start()
 
-    # ---------- save as (hakbang 2) - user ang pipindot ----------
+    # ---------- save as (hakbang 2) ----------
     def _unique_path(self, path):
         """Kung may kapareho nang pangalan sa napiling location, dagdagan ng (2), (3)... Hindi nag-o-overwrite."""
         base, n = path, 2
@@ -106,6 +107,7 @@ class BaseController:
             return
         # "Save As" na parang nagda-download sa browser: pipili ng destination at pwedeng palitan ang pangalan ng folder
         opts = {
+            "parent": self.root,
             "title": "Save As",
             "initialfile": self.output_folder_name,   # default na pangalan (pwedeng baguhin)
             "defaultextension": "",
@@ -116,6 +118,7 @@ class BaseController:
             opts["initialdir"] = os.path.dirname(self.g11_path.get())
         chosen = filedialog.asksaveasfilename(**opts)
         if not chosen:          # kinansela ng user
+            self.view.show_cancelled()
             return
         folder = self._unique_path(os.path.normpath(chosen))
         try:
@@ -150,7 +153,10 @@ class BaseController:
                     self.running = False
                     self.engine = msg[1]
                     self.view.set_running(False)
-                    self.view.show_processed(len(self.engine.results))
+                    count = len(self.engine.results)
+                    self.view.show_processed(count)
+                    if count > 0:
+                        self.root.after(300, self.save)   # kusang lalabas ang Save As pagkatapos ng processing
                 elif msg[0] == "error":
                     self.running = False
                     self.view.set_running(False)
