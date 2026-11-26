@@ -2,6 +2,7 @@
 import os
 import re
 import zipfile
+from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 from datetime import datetime, date
 
 from openpyxl.utils import column_index_from_string
@@ -21,6 +22,17 @@ def clean(v):
         except ValueError:
             return v
     return v
+
+
+def round_nearest_whole(v):
+    """Round a numeric grade to the nearest whole number (0.5 rounds up)."""
+    v = clean(v)
+    if v is None or isinstance(v, bool):
+        return v
+    try:
+        return int(Decimal(str(v)).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
+    except (InvalidOperation, ValueError):
+        return v
 
 
 def clean_text(v):
@@ -47,7 +59,17 @@ def norm_lrn(v):
         return ""
     if isinstance(v, float) and v.is_integer():
         v = int(v)
-    return re.sub(r"\s+", "", str(v)).replace(".0", "") if str(v).strip() else ""
+    value = re.sub(r"\s+", "", str(v).strip())
+    return value[:-2] if value.endswith(".0") else value
+
+
+def sex_output_folder(value, student_label):
+    sex = str(value or "").strip().upper()
+    if sex in ("M", "MALE"):
+        return "MALE"
+    if sex in ("F", "FEMALE"):
+        return "FEMALE"
+    raise ValueError(f'Hindi matukoy ang sex ni {student_label}: {sex or "walang value"}')
 
 
 def col_get(row, col):
@@ -96,6 +118,46 @@ def check_xlsx(path, label):
     if head.startswith(b"\xd0\xcf\x11\xe0"):
         raise ValueError(f"Ang {label} ay luma (.xls) na format o may password:\n{name}\n\nBuksan sa Excel (alisin ang password kung meron), tapos Save As .xlsx.")
     raise ValueError(f"Hindi Excel file ang {label}:\n{name}")
+
+
+def list_excel_files(folder, label):
+    """Ibalik ang lahat ng Excel workbook sa napiling folder."""
+    if not os.path.isdir(folder):
+        raise ValueError(f"Hindi makita ang {label} folder:\n{folder}")
+    try:
+        paths = sorted(
+            (
+                os.path.join(folder, name)
+                for name in os.listdir(folder)
+                if name.lower().endswith((".xlsx", ".xlsm"))
+                and not name.startswith("~$")
+                and os.path.isfile(os.path.join(folder, name))
+            ),
+            key=str.lower,
+        )
+    except OSError as e:
+        raise ValueError(f"Hindi mabasa ang {label} folder:\n{folder}\n{e}")
+    if not paths:
+        raise ValueError(f"Walang Excel file sa {label} folder:\n{folder}")
+    return paths
+
+
+def unique_name_lrns(students):
+    """I-map ang natatanging pangalan sa LRN; alisin ang mga pangalang hindi ligtas i-match."""
+    matches = {}
+    ambiguous = set()
+    for student in students:
+        name, lrn = norm_name(student.get("name")), student.get("lrn")
+        if not name or not lrn:
+            continue
+        if name in matches and matches[name] != lrn:
+            ambiguous.add(name)
+        else:
+            matches[name] = lrn
+    for name in ambiguous:
+        matches.pop(name, None)
+    return matches
+
 
 def find_template(dirs, name, keywords):
     """Hanapin ang template: eksaktong pangalan muna, tapos kahit bahagyang iba ang pangalan

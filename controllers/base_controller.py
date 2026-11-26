@@ -35,6 +35,11 @@ class BaseController:
         self.g11_path = tk.StringVar(master=root)
         self.g12_path = tk.StringVar(master=root)
         self.template_path = tk.StringVar(master=root, value=self._default_template())
+        self.template_folder = tk.StringVar(
+            master=root,
+            value=os.path.dirname(self.template_path.get()) or config.BASE_DIR,
+        )
+        self.template_files = []
         self.engine = None        # may laman pagkatapos ng processing (hindi pa naka-save)
         self.last_out = ""        # huling folder na na-save
         self.q = queue.Queue()
@@ -43,25 +48,62 @@ class BaseController:
 
     def attach(self, view):
         self.view = view
+        self.template_files = self._list_excel_files(self.template_folder.get()) or []
+        self.view.set_template_files(self.template_files, self.template_folder.get())
 
     # ---------- template ----------
     def _default_template(self):
         return find_template((config.BASE_DIR, os.getcwd()), self.template_name, self.template_keywords)
 
     # ---------- pickers ----------
-    def _pick_excel(self, var, title):
-        p = filedialog.askopenfilename(title=title, filetypes=[("Excel", "*.xlsx *.xlsm"), ("All", "*.*")])
+    def _pick_folder(self, var, title):
+        p = filedialog.askdirectory(
+            parent=self.root,
+            title=title,
+            initialdir=var.get() or config.BASE_DIR,
+        )
         if p:
             var.set(p)
 
     def pick_g11(self):
-        self._pick_excel(self.g11_path, "Grade 11 Automated Conso")
+        self._pick_folder(self.g11_path, "Select GRADE 11 AUTOMATED CONSO AND ECARD folder")
 
     def pick_g12(self):
-        self._pick_excel(self.g12_path, "Grade 12 Automated Conso")
+        self._pick_folder(self.g12_path, "Select GRADE 12 AUTOMATED CONSO AND ECARD folder")
 
     def pick_template(self):
-        self._pick_excel(self.template_path, self.template_name)
+        folder = filedialog.askdirectory(
+            parent=self.root,
+            title="Select folder containing the template",
+            initialdir=self.template_folder.get() or config.BASE_DIR,
+        )
+        if not folder:
+            return
+        files = self._list_excel_files(folder)
+        if files is None:
+            return
+        self.template_folder.set(folder)
+        self.template_files = files
+        self.template_path.set("")
+        self.view.set_template_files(files, folder)
+
+    def select_template(self, filename):
+        if filename in self.template_files:
+            self.template_path.set(os.path.join(self.template_folder.get(), filename))
+
+    def _list_excel_files(self, folder):
+        try:
+            return sorted(
+                (
+                    name for name in os.listdir(folder)
+                    if name.lower().endswith((".xlsx", ".xlsm"))
+                    and os.path.isfile(os.path.join(folder, name))
+                ),
+                key=str.lower,
+            )
+        except OSError as e:
+            messagebox.showerror("Template", f"Hindi mabasa ang napiling folder:\n\n{e}")
+            return None
 
     # ---------- run (hakbang 1) ----------
     def start(self):
@@ -69,7 +111,7 @@ class BaseController:
             return
         g11, g12, tpl = self.g11_path.get(), self.g12_path.get(), self.template_path.get()
         if not g11 or not g12:
-            messagebox.showwarning("Kulang", "Pumili muna ng Grade 11 at Grade 12 file.")
+            messagebox.showwarning("Kulang", "Pumili muna ng Grade 11 at Grade 12 folder.")
             return
         if not tpl or not os.path.exists(tpl):
             messagebox.showwarning("Template", f"Hanapin ang {self.template_name} sa Settings.")
@@ -115,7 +157,7 @@ class BaseController:
             "confirmoverwrite": False,
         }
         if self.g11_path.get():
-            opts["initialdir"] = os.path.dirname(self.g11_path.get())
+            opts["initialdir"] = self.g11_path.get()
         chosen = filedialog.asksaveasfilename(**opts)
         if not chosen:          # kinansela ng user
             self.view.show_cancelled()

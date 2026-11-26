@@ -47,7 +47,7 @@ class StatCard(tk.Frame):
 
 
 class FileSlot(tk.Frame):
-    """Title (nagiging pangalan ng file) + hint + Browse button."""
+    """Title (selected folder) + hint + Browse button."""
 
     def __init__(self, parent, default_title, var, btn_text, command, divider=True):
         super().__init__(parent, bg=T.BG)
@@ -57,7 +57,7 @@ class FileSlot(tk.Frame):
         self.title = tk.Label(inner, text="🗎  " + default_title, bg=T.BG,
                               font=(T.FONT, 13), anchor="w")
         self.title.pack(anchor="w")
-        tk.Label(inner, text="Select File to This Area", bg=T.BG, fg=T.MUTED,
+        tk.Label(inner, text="Select folder containing Excel files", bg=T.BG, fg=T.MUTED,
                  font=(T.FONT, 8)).pack(anchor="w")
         tk.Button(inner, text=btn_text, bg=T.GRAY, fg="#555", relief="flat",
                   font=(T.FONT, 8), cursor="hand2", command=command
@@ -67,6 +67,6 @@ class FileSlot(tk.Frame):
 
         def refresh(*_):
             p = var.get()
-            self.title.config(text="🗎  " + (os.path.basename(p) if p else default_title))
+            self.title.config(text="🗎  " + (os.path.basename(os.path.normpath(p)) if p else default_title))
         var.trace_add("write", refresh)
         refresh()

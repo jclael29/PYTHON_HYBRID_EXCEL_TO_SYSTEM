@@ -8,7 +8,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 APP_TITLE = "Trace College - Form Automation"
 TEMPLATE_NAME = "GAS_SHS_TEMPLATE_SF10.xlsx"
 TEMPLATE_GLOB = "*SHS*TEMPLATE*SF10*.xlsx"   # panghanap kung bahagyang iba ang pangalan
-OUTPUT_FOLDER_NAME = "SECTION_SF10"   # pangalan ng folder na kusang gagawin (pwede nilang i-rename pagkatapos)
+OUTPUT_FOLDER_NAME = "TRACKNAME"      # pangalan ng main output folder; pwede itong palitan sa Save As
 
 # MASTER SHEET (row 8 pababa) - student info galing sa GRADE 12 conso (hindi na sa Grade 11)
 MASTER_START_ROW = 8
@@ -25,7 +25,7 @@ MASTER_COLS = {
     "school_year": "N",
     "gwa": "K",
     "last_school": "L",
-    "school_addres": "M",
+    "school_addres": "M",   
 }
 
 # Grade 11 MASTER SHEET: LRN (pang-match) at SECTION lang ang kinukuha

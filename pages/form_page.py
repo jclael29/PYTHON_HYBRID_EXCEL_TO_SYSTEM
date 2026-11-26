@@ -1,4 +1,5 @@
 """FORM PAGE - isang UI na gamit ng SF10 at Form 9. Ang lohika ay nasa controllers/base_controller.py."""
+import os
 import tkinter as tk
 from tkinter import ttk, messagebox
 
@@ -19,7 +20,7 @@ class FormPage(BasePage):
         pill = tk.Frame(head, bg=T.BG, highlightbackground="#888", highlightthickness=1)
         pill.pack(side="right", anchor="n")
         self.tab_form = tk.Label(pill, text="Form", font=(T.FONT, 8), padx=18, pady=2, cursor="hand2")
-        self.tab_set = tk.Label(pill, text="🎓 Settings", font=(T.FONT, 8), padx=12, pady=2, cursor="hand2")
+        self.tab_set = tk.Label(pill, text="Settings", font=(T.FONT, 8), padx=12, pady=2, cursor="hand2")
         self.tab_form.pack(side="left")
         self.tab_set.pack(side="left")
         self.tab_form.bind("<Button-1>", lambda e: self.show_tab("form"))
@@ -72,9 +73,9 @@ class FormPage(BasePage):
         section_title(parent, "▥", "File Configuration")
         files = card(parent)
         FileSlot(files, "GRADE 11 AUTOMATED CONSO AND ECARD", self.c.g11_path,
-                 "Browse Excel", self.c.pick_g11)
+                 "Browse Folder", self.c.pick_g11)
         FileSlot(files, "GRADE 12 AUTOMATED CONSO AND ECARD", self.c.g12_path,
-                 "Browse E-card", self.c.pick_g12, divider=False)
+                 "Browse Folder", self.c.pick_g12, divider=False)
 
         section_title(parent, "◔", "Processing")
         prog = card(parent)
@@ -101,10 +102,23 @@ class FormPage(BasePage):
         tk.Label(f, text=f"{self.c.template_label} ({self.c.template_name})", bg=T.BG, font=(T.FONT, 11)).pack(anchor="w")
         row = tk.Frame(f, bg=T.BG)
         row.pack(fill="x", pady=4)
-        tk.Entry(row, textvariable=self.c.template_path, relief="solid", bd=1).pack(side="left", fill="x", expand=True, ipady=4)
-        tk.Button(row, text="Browse", bg=T.GRAY, relief="flat", command=self.c.pick_template).pack(side="left", padx=6, ipadx=10)
+        self.template_choice = tk.StringVar()
+        self.template_combo = ttk.Combobox(row, textvariable=self.template_choice, state="disabled")
+        self.template_combo.pack(side="left", fill="x", expand=True, ipady=2)
+        self.template_combo.bind("<<ComboboxSelected>>", lambda _: self.c.select_template(self.template_choice.get()))
+        tk.Button(row, text="Choose Folder", bg=T.GRAY, relief="flat",
+                  command=self.c.pick_template).pack(side="left", padx=6, ipadx=10)
+        self.template_folder_var = tk.StringVar()
+        tk.Label(f, textvariable=self.template_folder_var, bg=T.BG, fg=T.MUTED,
+                 font=(T.FONT, 8), anchor="w").pack(anchor="w")
         tk.Label(box, text=f'Pagkatapos ng processing, kusang lalabas ang Save As: pumili ng destination at ilagay ang pangalan ng folder (default: "{self.c.output_folder_name}").',
                  bg=T.BG, fg=T.MUTED, font=(T.FONT, 8)).pack(anchor="w", padx=16, pady=(0, 10))
+
+    def set_template_files(self, filenames, folder):
+        self.template_folder_var.set(folder)
+        self.template_combo.configure(values=filenames, state="readonly" if filenames else "disabled")
+        current_file = os.path.basename(self.c.template_path.get()) if self.c.template_path.get() else ""
+        self.template_choice.set(current_file if current_file in filenames else "")
 
     # ---------- tabs ----------
     def show_tab(self, which):

@@ -40,7 +40,7 @@ class Sidebar(tk.Frame):
 
         up = tk.Frame(self, bg="#f4f4f4", height=60)
         up.pack(side="bottom", fill="x", padx=14, pady=16)
-        tk.Label(up, text="Updates plan", bg="#f4f4f4", font=(T.FONT, 9)).pack(pady=18)
+        tk.Label(up, text="Registrar", bg="#f4f4f4", font=(T.FONT, 9)).pack(pady=18)
 
     def highlight(self, active):
         for key, b in self.buttons.items():
@@ -61,7 +61,7 @@ class App(tk.Tk):
         self.sf10_controller = SF10Controller(self)
         self.form9_controller = Form9Controller(self)
 
-        self.sidebar = Sidebar(self, [("sf10", "  SF10 GENERATE"),
+        self.sidebar = Sidebar(self, [("sf10", "     SF10 GENERATE"),
                                       ("form9", "     GRAD FORM 9")], self.show_page)
         self.sidebar.pack(side="left", fill="y")
 
